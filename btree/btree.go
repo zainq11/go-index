@@ -6,7 +6,7 @@ import i "indexers/index"
 type Btree[T i.Key] struct {
 	Order              int
 	minChildrenForRoot int
-	root               *Node[T]
+	root               *node[T]
 }
 
 func NewBTree[T i.Key](order int) *Btree[T] {
@@ -14,23 +14,23 @@ func NewBTree[T i.Key](order int) *Btree[T] {
 	return &Btree[T]{
 		Order:              order,
 		minChildrenForRoot: 2,
-		root:               &Node[T]{},
+		root:               &node[T]{},
 	}
 }
 
 func (b *Btree[T]) Insert(k T, v *i.Value) error {
 	n, i := b.root.find(k)
 	if i != nil {
-		i.V = append(i.V, v)
+		i.v = append(i.v, v)
 		return nil
 	}
 
-	if b.IsFull(n) {
-		// Split
+	if b.isFull(n) {
+		// split
 		// Create 2 nodes (n1 & n2) with half of the data each
-		// Create a parent node p. p.Parent = n.Parent
+		// Create a parent node p. p.parent = n.parent
 		// n1.parent = p  and n2.parent = p
-		b.Split(n)
+		b.split(n)
 		return nil
 	}
 
@@ -45,29 +45,29 @@ func (b *Btree[T]) Delete(k T) bool {
 func (b *Btree[T]) Search(k T) i.Value {
 	_, i := b.root.find(k)
 	if i != nil {
-		return i.V
+		return i.v
 	}
 	return nil
 }
 
-func (b *Btree[T]) Split(n *Node[T]) error {
-	l := len(n.Items)
+func (b *Btree[T]) split(n *node[T]) error {
+	l := len(n.items)
 	m := l / 2
 
-	parent := n.Parent
-	median := n.Items[m]
+	parent := n.parent
+	median := n.items[m]
 
-	top := NewNode[T](parent, []*Item[T]{median}, false)
+	top := newNode[T](parent, []*item[T]{median}, false)
 
-	first := NewNode[T](top, n.Items[0:m], true)
-	second := NewNode[T](top, n.Items[m+1:l], true)
+	first := newNode[T](top, n.items[0:m], true)
+	second := newNode[T](top, n.items[m+1:l], true)
 
-	median.Before = first
-	median.After = second
+	median.before = first
+	median.after = second
 
 	return nil
 }
 
-func (b *Btree[T]) IsFull(n *Node[T]) bool {
-	return len(n.Items) == b.Order-1
+func (b *Btree[T]) isFull(n *node[T]) bool {
+	return len(n.items) == b.Order-1
 }

@@ -2,57 +2,58 @@ package btree
 
 import i "indexers/index"
 
-type Node[T i.Key] struct {
-	Parent *Node[T]
-	Items  []*Item[T]
-	isLeaf bool
+type node[T i.Key] struct {
+	parent *node[T]
+	items  []*item[T]
+	leaf   bool
 }
 
-func NewNode[T i.Key](parent *Node[T], items []*Item[T], isLeaf bool) *Node[T] {
-	return &Node[T]{
-		Parent: parent,
-		Items:  items,
-		isLeaf: isLeaf,
+func newNode[T i.Key](parent *node[T], items []*item[T], isLeaf bool) *node[T] {
+	return &node[T]{
+		parent: parent,
+		items:  items,
+		leaf:   isLeaf,
 	}
 }
 
-func (n *Node[T]) insert() {
+func (n *node[T]) insert() {
 	// To insert an item to a node
 	// - find the location, in between
 	// - update before and next pointers of item, before and next
 
 }
 
-func (n *Node[T]) find(k T) (*Node[T], *Item[T]) {
-	for i, item := range n.Items {
-		if item.K == k {
+func (n *node[T]) find(k T) (*node[T], *item[T]) {
+	for i, item := range n.items {
+		if item.k == k {
 			return n, item
 		}
 
-		if item.K > k {
-			if n.IsLeaf() {
+		if item.k > k {
+			if n.isLeaf() {
 				return n, nil
 			}
 
-			return item.Before.find(k)
+			return item.before.find(k)
 		}
 
-		if i == len(n.Items)-1 {
-			if n.IsLeaf() {
+		if i == len(n.items)-1 {
+			if n.isLeaf() {
 				return n, nil
 			}
 
-			return item.After.find(k)
+			return item.after.find(k)
 		}
 	}
 
 	return n, nil
 }
 
-func (n *Node[T]) IsLeaf() bool {
-	return n.isLeaf
+func (n *node[T]) isLeaf() bool {
+	// TODO: implement this as an expression
+	return n.leaf
 }
 
-func (n *Node[T]) median() *Item[T] {
-	return n.Items[len(n.Items)/2]
+func (n *node[T]) median() *item[T] {
+	return n.items[len(n.items)/2]
 }
