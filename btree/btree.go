@@ -1,6 +1,9 @@
 package btree
 
-import i "indexers/index"
+import (
+	"container/list"
+	i "indexers/index"
+)
 
 // Btree top level construct for the Btree implementation
 type Btree[T i.Key] struct {
@@ -20,9 +23,16 @@ func NewBTree[T i.Key](order int) *Btree[T] {
 
 func (b *Btree[T]) Insert(k T, v *i.Value) error {
 	n, i := b.root.find(k)
+
+	// key found, replace the value
 	if i != nil {
-		i.v = append(i.v, v)
+		i.value = v
 		return nil
+	}
+
+	// node found, insert the value into node
+	if n != nil {
+		n.insert(k, v)
 	}
 
 	if b.isFull(n) {
@@ -31,7 +41,6 @@ func (b *Btree[T]) Insert(k T, v *i.Value) error {
 		// Create a parent node p. p.parent = n.parent
 		// n1.parent = p  and n2.parent = p
 		b.split(n)
-		return nil
 	}
 
 	return nil
@@ -45,29 +54,33 @@ func (b *Btree[T]) Delete(k T) bool {
 func (b *Btree[T]) Search(k T) i.Value {
 	_, i := b.root.find(k)
 	if i != nil {
-		return i.v
+		return i.value
 	}
 	return nil
 }
 
 func (b *Btree[T]) split(n *node[T]) error {
-	l := len(n.items)
+	l := n.items.Len()
 	m := l / 2
 
-	parent := n.parent
-	median := n.items[m]
+	curr := n.items.Front()
+	
+	for i := 0; i  < m; i++ {
+		curr = curr.Next()	
+	}
 
-	top := newNode[T](parent, []*item[T]{median}, false)
+	median := curr.Value.(*item[T])
 
-	first := newNode[T](top, n.items[0:m], true)
-	second := newNode[T](top, n.items[m+1:l], true)
+	items := list.New()
+	items.PushFront(median)
 
-	median.before = first
-	median.after = second
+	// split the list at median point
+	left, right := n.splitAt(median)
+	n.promote(median, left, right)
 
 	return nil
 }
 
 func (b *Btree[T]) isFull(n *node[T]) bool {
-	return len(n.items) == b.Order-1
+	return n.items.Len() == b.Order-1
 }
