@@ -59,14 +59,15 @@ func (b *Btree[T]) Search(k T) i.Value {
 	return nil
 }
 
+// split method  
 func (b *Btree[T]) split(n *node[T]) error {
 	l := n.items.Len()
 	m := l / 2
 
 	curr := n.items.Front()
-	
-	for i := 0; i  < m; i++ {
-		curr = curr.Next()	
+
+	for i := 0; i < m; i++ {
+		curr = curr.Next()
 	}
 
 	median := curr.Value.(*item[T])

@@ -11,11 +11,11 @@ func Test_newNode(t *testing.T) {
 	type X = int
 	type args struct {
 		parent *node[X]
-		items  []*item[X]
+		items  *list.List
 		isLeaf bool
 	}
 
-	parent := &node[X]{
+	root := &node[X]{
 		parent: nil,
 		items:  list.New(),
 		leaf:   false,
@@ -31,18 +31,19 @@ func Test_newNode(t *testing.T) {
 			// TODO: Add test cases.
 			"creation success",
 			args{
-				parent: parent,
-				items:  list.List.New(),
-				isLeaf: false,
+				parent: root,
+				items:  list.New(),
+				isLeaf: true,
 			},
-			parent,
-			false,
+			root,
+			true,
 			0,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := newNode(tt.args.parent, tt.args.isLeaf)
+			got := newNode(tt.args.parent, tt.args.items, tt.args.isLeaf)
 
 			if got != nil {
 				if !reflect.DeepEqual(got.parent, tt.wantParent) {

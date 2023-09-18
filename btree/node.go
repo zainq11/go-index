@@ -1,7 +1,11 @@
 package btree
 
-import "indexers/index"
-import "container/list"
+import (
+	"container/list"
+	"indexers/index"
+)
+
+// import "container/list"
 
 // node represents the node in the tree. It contains the following attributes:
 //   - A pointer to the parent node.
@@ -9,11 +13,11 @@ import "container/list"
 //   - A bool that tells us whether the node is a leaf.
 type node[T index.Key] struct {
 	parent *node[T]
-	items  *list.List
+	items  []*item[T]
 	leaf   bool
 }
 
-func newNode[T index.Key](parent *node[T], items *list.List, isLeaf bool) *node[T] {
+func newNode[T index.Key](parent *node[T], items *[]item[T], isLeaf bool) *node[T] {
 	return &node[T]{
 		parent: parent,
 		items:  items,
@@ -25,54 +29,63 @@ func (n *node[T]) insert(k T, v *index.Value) {
 	// To insert an item to a node
 	// - find the location, in between
 	// - update before and next pointers of item, before and next
-	for curr := n.items.Front(); curr != nil; curr = curr.Next() {
-		// do something with e.Value
-		currItem := curr.Value.(*item[T])
-		// Find the first node with value < key
-		// We need to decide between
-		//	- if leaf, Insert item in current node
-		//	- else Choose next node
-		if k < currItem.key {
+	// prev := n.items[0]
+	for i := 0; i < len(n.items); i++ {
+		curr := n.items[i]
+		if k < curr.key {
 			if n.isLeaf() {
-				var prevItem *item[T]
-				if curr.Prev() != nil {
-					prevItem = curr.Prev().Value.(*item[T])
+				if i > 0 {
+					prev := n.items[i-1]
+					item := newItem[T](prev.after, k, v, curr.before)
+				} else {
+					item := newItem[T](nil, k, v, curr.before)
 				}
-				item := newItem[T](prevItem.after, k, v, currItem.before)
-				n.items.InsertBefore(item, curr)
 
+				// joining items on new item
+				prefix := append(n.items[:i], item)
+				n.items = append(prefix, n.items[i:])
+			} else {
+				curr.before.insert(k, v)
 			}
-
-		} else {
-			currItem.before.insert(k, v)
+			return
 		}
 	}
+
+	item := newItem[T](n.items[len(*n.items)-1].after, k, v, nil)
+	n.items = append(n.items, item)
 }
 
 // find will look for the key k starting at node n
 func (n *node[T]) find(k T) (*node[T], *item[T]) {
-	for curr := n.items.Front(); curr != nil; curr = curr.Next() {
-		item := curr.Value.(*item[T])
+	// if leaf, do equality check
+	// if not leaf
+	//	the items are [10, 20, 30, 40, 50] and k is 25
+	//	left = 10, right = 50, mid = 30
+	//	left = 10, right = 30, mid = 20
+	//	left = 20, right = 30, and difference between left and right is 1-index
 
-		if item.key == k {
-			return n, item
+	left, right := 0, len(n.items)
+
+	for left < right {
+		mid := left + (right-left)/2
+		midItem := n.items[mid]
+		if midItem.key == k {
+			if n.isLeaf() {
+				return n, midItem
+			}
+			return midItem.after.find(k)
 		}
 
-		if item.key > k {
-			if n.isLeaf() {
-				return n, nil
-			}
-			return item.before.find(k)
+		if right-left == 1 {
+			return n.items[left].after.find(k)
 		}
 
-		if curr == n.items.Back() {
-			if n.isLeaf() {
-				return n, nil
-			}
-			return item.after.find(k)
+		if n.items[mid].key > k {
+			right = mid
+		} else {
+			left = mid
 		}
 	}
-
 	return n, nil
 }
 
