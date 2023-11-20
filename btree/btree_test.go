@@ -34,6 +34,7 @@ func TestBtree_InsertAndSearch(t *testing.T) {
 					v: "b",
 				},
 			},
+			wantErr: false,
 		},
 	}
 

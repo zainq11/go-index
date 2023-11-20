@@ -2,30 +2,30 @@ package btree
 
 import i "indexers/index"
 
-type item[T i.Key] struct {
-	before *node[T]
-	key    T
-	value  i.Value
-	after  *node[T]
+type Item[T i.Key] struct {
+	Before *node[T] `json:"before"`
+	Key    T        `json:"key"`
+	Value  i.Value  `json:"value"`
+	After  *node[T] `json:"after"`
 }
 
-func newItem[K i.Key](before *node[K], k K, v i.Value, after *node[K]) *item[K] {
-	return &item[K]{
-		before: before,
-		key:    k,
-		value:  v,
-		after:  after,
+func newItem[K i.Key](before *node[K], k K, v i.Value, after *node[K]) *Item[K] {
+	return &Item[K]{
+		Before: before,
+		Key:    k,
+		Value:  v,
+		After:  after,
 	}
 }
 
-func (i item[T]) setBefore(n *node[T]) {
-	i.before = n
+func (i Item[T]) setBefore(n *node[T]) {
+	i.Before = n
 }
 
-func (i item[T]) setAfter(n *node[T]) {
-	i.after = n
+func (i Item[T]) setAfter(n *node[T]) {
+	i.After = n
 }
 
-func (i item[T]) less(other item[T]) bool {
-	return i.key < other.key
+func (i Item[T]) less(other Item[T]) bool {
+	return i.Key < other.Key
 }

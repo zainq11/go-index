@@ -1,7 +1,6 @@
 package btree
 
 import (
-	"container/list"
 	i "indexers/index"
 )
 
@@ -17,7 +16,7 @@ func NewBTree[T i.Key](order int) *Btree[T] {
 	return &Btree[T]{
 		Order:              order,
 		minChildrenForRoot: 2,
-		root:               &node[T]{},
+		root:               newNode(nil, []*Item[T]{}, true),
 	}
 }
 
@@ -26,7 +25,7 @@ func (b *Btree[T]) Insert(k T, v *i.Value) error {
 
 	// key found, replace the value
 	if i != nil {
-		i.value = v
+		i.Value = v
 		return nil
 	}
 
@@ -54,34 +53,23 @@ func (b *Btree[T]) Delete(k T) bool {
 func (b *Btree[T]) Search(k T) i.Value {
 	_, i := b.root.find(k)
 	if i != nil {
-		return i.value
+		return i.Value
 	}
 	return nil
 }
 
 // split method  
-func (b *Btree[T]) split(n *node[T]) error {
-	l := n.items.Len()
-	m := l / 2
-
-	curr := n.items.Front()
-
-	for i := 0; i < m; i++ {
-		curr = curr.Next()
-	}
-
-	median := curr.Value.(*item[T])
-
-	items := list.New()
-	items.PushFront(median)
+func (b *Btree[T]) split(n *node[T]) {
+	m := len(n.Items) / 2
 
 	// split the list at median point
-	left, right := n.splitAt(median)
-	n.promote(median, left, right)
+	median := n.Items[m]
+	left, right := n.splitAt(m)
 
-	return nil
+	// Promote the median node to the parent
+	n.promote(median, left, right)
 }
 
 func (b *Btree[T]) isFull(n *node[T]) bool {
-	return n.items.Len() == b.Order-1
+	return len(n.Items) == b.Order-1
 }

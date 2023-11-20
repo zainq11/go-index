@@ -1,10 +1,7 @@
-package main
+package btree
 
 import "fmt"
 
-func main() {
-	var s string
-	s = "zain"
-
-	fmt.Printf("Lets go: %v", s)
+func btree() {
+	fmt.Println("hello world")
 }
